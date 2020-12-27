@@ -114,22 +114,61 @@ namespace Iyoku.Modules
         private Embed CreateCollectionName(User user)
         {
             List<Collection> UserCollections = user.Collections;
+            List<Collection> WriteCollections = user.Collections.Where(x => x.AllowCurrentDisplay(Context)).ToList();
 
             EmbedBuilder embed = new EmbedBuilder
             {
                 Title = "Your collections",
-                Description = "Here's a list of your collections\n\n",
+                Description = "Here's a list of your collections:",
                 Color = new Color(16234901)
             };
 
-            foreach (Collection col in UserCollections)
+            embed.Fields = new List<EmbedFieldBuilder>();
+            string PublicCollections = WriteCollectionString(WriteCollections, CollectionType.Public);
+            string GuildCollections = WriteCollectionString(WriteCollections, CollectionType.Server);
+            string PrivateCollections = WriteCollectionString(WriteCollections, CollectionType.Private);
+
+            if (PublicCollections != null)
             {
-                if (col.AllowCurrentDisplay(Context)) {
-                    embed.Description += $"**{col.Name}**\n";
-                }
+                embed.Fields.Add(new EmbedFieldBuilder
+                {
+                    Name = "Public",
+                    Value = PublicCollections,
+                    IsInline = true
+                });
+            }
+            if (GuildCollections != null)
+            {
+                embed.Fields.Add(new EmbedFieldBuilder
+                {
+                    Name = "Guild",
+                    Value = GuildCollections,
+                    IsInline = true
+                });
+            }
+            if (PrivateCollections != null)
+            {
+                embed.Fields.Add(new EmbedFieldBuilder
+                {
+                    Name = "Private",
+                    Value = PrivateCollections,
+                    IsInline = true
+                });
             }
 
             return embed.Build();
+        }
+
+        public string WriteCollectionString(List<Collection> collections, CollectionType type)
+        {
+            string Result = null;
+
+            foreach (Collection col in collections.Where(x => x.Type == type))
+            {
+                Result += $"{col.Name}\n";
+            }
+
+            return Result;
         }
     }
 }
