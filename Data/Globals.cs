@@ -3,12 +3,15 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
+using Iyoku.Db;
 
 namespace Iyoku.Data
 {
     class Globals
     {
         public static string BotToken { get; private set; }
+
+        public static DbSystem Db = new DbSystem();
             
         public static void InitConfig()
         {
@@ -20,5 +23,13 @@ namespace Iyoku.Data
 
             BotToken = ConfigurationJson.Value<string>("botToken");
         }
+    }
+
+    [Serializable]
+    public enum CollectionType
+    {
+        Public,
+        Server,
+        Private
     }
 }

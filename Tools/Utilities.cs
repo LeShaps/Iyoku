@@ -39,5 +39,17 @@ namespace Iyoku.Utilities
 
             return EmojisList.ToArray();
         }
+
+        public static Color ColorFromHex(string HexValue)
+        {
+            try
+            {
+                return new Color(uint.Parse(HexValue, System.Globalization.NumberStyles.HexNumber));
+            }
+            catch
+            {
+                return new Color(0);
+            }
+        }
     }
 }

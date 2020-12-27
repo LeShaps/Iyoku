@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Iyoku.Utilities;
 using Iyoku.Data;
-using System.Linq;
+using Iyoku.Modules;
 using Discord.WebSocket;
 
 namespace Iyoku
@@ -41,15 +41,17 @@ namespace Iyoku
 
         public async Task MainAsync()
         {
-            await Loggers.LogEventAsync(new LogMessage(LogSeverity.Info, "Initialisation...", "Stating APIAS")).ConfigureAwait(false);
+            await Loggers.LogEventAsync(new LogMessage(LogSeverity.Info, "Init...", "Stating Iyoku")).ConfigureAwait(false);
 
             Globals.InitConfig();
+            await Globals.Db.InitAsync();
             
             await Loggers.LogEventAsync(new LogMessage(LogSeverity.Info, "Setup", "Initializing Modules...")).ConfigureAwait(false);
 
+            await commands.AddModuleAsync<CommunicationModule>(null);
+            await commands.AddModuleAsync<CollectionModule>(null);
+
             Client.MessageReceived += HandleMessageAsync;
-            Client.JoinedGuild += InitGuildAsync;
-            Client.GuildAvailable += InitGuildAsync;
 
             commands.Log += Loggers.LogEventAsync;
 
@@ -57,11 +59,6 @@ namespace Iyoku
             await Client.StartAsync();
 
             await Task.Delay(-1).ConfigureAwait(false);
-        }
-
-        private async Task InitGuildAsync(SocketGuild arg)
-        {
-            throw new NotSupportedException();
         }
 
         private async Task HandleMessageAsync(SocketMessage arg)
