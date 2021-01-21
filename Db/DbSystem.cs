@@ -78,5 +78,17 @@ namespace Iyoku.Db
 
             return await R1.Db(_dbName).Table(_usersTableName).Get(User.Id.ToString()).RunAsync<User>(_conn);
         }
+
+        public async Task<User> GetUser(string Username)
+        {
+            if(!await R1.Db(_dbName).Table(_usersTableName).Filter(x => x["Name"]).Count().Eq(0).RunAsync<bool>(_conn))
+            {
+                var Results = await R1.Db(_dbName).Table(_usersTableName).Filter(x => x["Name"]).RunResultAsync<User[]>(_conn);
+                User FinalUser = Results[0];
+                return FinalUser;
+            }
+
+            return null;
+        }
     }
 }

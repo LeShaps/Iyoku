@@ -50,6 +50,7 @@ namespace Iyoku
 
             await commands.AddModuleAsync<CommunicationModule>(null);
             await commands.AddModuleAsync<CollectionModule>(null);
+            await commands.AddModuleAsync<CollectionManagementModule>(null);
 
             Client.MessageReceived += HandleMessageAsync;
 

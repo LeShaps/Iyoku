@@ -28,7 +28,7 @@ namespace Iyoku.Modules
                 await ReplyAsync("Something went wrong, I couldn't find you in the db");
                 return;
             }
-            await ReplyAsync("", false, CreateCollectionName(CustomUser));
+            await ReplyAsync("", false, CreateCollectionName(CustomUser, Context));
         }
 
         [Command("Create new public Collection")]
@@ -111,7 +111,20 @@ namespace Iyoku.Modules
             await ReplyAsync("The collection have been sucessfully removed");
         }
 
-        private Embed CreateCollectionName(User user)
+        [Command("Display collections of")]
+        public async Task DisplayOtherConnection([Remainder]string Name)
+        {
+            User BasicUser = await Globals.Db.GetUser(Name);
+
+            if (BasicUser == null) {
+                await ReplyAsync("I couldn't find this user in the db");
+                return;
+            }
+
+            await ReplyAsync("", false, CreateCollectionName(BasicUser, Context));
+        }
+
+        public static Embed CreateCollectionName(User user, ICommandContext Context)
         {
             List<Collection> UserCollections = user.Collections;
             List<Collection> WriteCollections = user.Collections.Where(x => x.AllowCurrentDisplay(Context)).ToList();
@@ -159,7 +172,7 @@ namespace Iyoku.Modules
             return embed.Build();
         }
 
-        public string WriteCollectionString(List<Collection> collections, CollectionType type)
+        private static string WriteCollectionString(List<Collection> collections, CollectionType type)
         {
             string Result = null;
 

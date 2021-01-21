@@ -65,6 +65,8 @@ namespace Iyoku.Db
                 } else {
                     return false;
                 }
+            } else if (Type == CollectionType.Server && Context.Guild == null && !AllowedUsers.Contains(Context.User.Id.ToString())) {
+                return false;
             }
 
             return true;
