@@ -2,6 +2,8 @@
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 
 namespace Iyoku.Utilities
 {
@@ -50,6 +52,42 @@ namespace Iyoku.Utilities
             {
                 return new Color(0);
             }
+        }
+
+        /// <summary>
+        /// Make a HTML text reading-friendly
+        /// </summary>
+        /// <param name="WebString">A HTML text</param>
+        /// <returns>The text human-friendly</returns>
+        public static string Clarify(string WebString)
+        {
+            if (WebString == null)
+            {
+                return null;
+            }
+            return GetPlainTextFromHtml(WebUtility.HtmlDecode(WebString));
+        }
+
+        /// <summary>
+        /// Get plain text from HTML's one using Regex
+        /// </summary>
+        /// <param name="htmlString">An HTML string</param>
+        /// <returns>The plain text of the HTML string</returns>
+        public static string GetPlainTextFromHtml(string htmlString)
+        {
+            if (htmlString == null)
+            {
+                return null;
+            }
+
+            const string htmlTagPattern = "<.*?>";
+            var regexCss = new Regex("(\\<script(.+?)\\</script\\>)|(\\<style(.+?)\\</style\\>)", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            htmlString = regexCss.Replace(htmlString, string.Empty);
+            htmlString = Regex.Replace(htmlString, htmlTagPattern, string.Empty);
+            htmlString = Regex.Replace(htmlString, @"^\s+$[\r\n]*", "", RegexOptions.Multiline);
+
+            return htmlString;
         }
     }
 }

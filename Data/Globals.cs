@@ -4,15 +4,29 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using Iyoku.Db;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using Discord.WebSocket;
 
 namespace Iyoku.Data
 {
     class Globals
     {
+        /* Config */
         public static string BotToken { get; private set; }
+        public static DiscordSocketClient Client;
 
+        /* DB and behaviour */
         public static DbSystem Db = new DbSystem();
-            
+        public static HttpClient Asker = new HttpClient();
+
+        /* Configuration */
+        public static List<Collection> InConfigCollections = new List<Collection>();
+        public static List<ulong> JailChannels = new List<ulong>();
+        public static List<ulong> HellChannels = new List<ulong>();
+        public static bool SiteUploadConfigured = true;
+        
         public static void InitConfig()
         {
             if (!File.Exists("Loggers/Credentials.json"))

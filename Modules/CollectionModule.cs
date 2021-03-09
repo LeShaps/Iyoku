@@ -5,6 +5,7 @@ using Iyoku.Db;
 using Discord;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Iyoku.Modules
 {
@@ -36,8 +37,7 @@ namespace Iyoku.Modules
         {
             User CurrentUser = await Globals.Db.GetUser(Context.User);
             if (CurrentUser == null) {
-                await ReplyAsync("Something when wrong, I couldn't find you in the db");
-                return;
+                CurrentUser = await Globals.Db.InitUser(Context.User);
             }
 
             if (CurrentUser.Collections.Any(x => x.Name == CollectionName && x.Type == CollectionType.Public)) {
@@ -53,10 +53,8 @@ namespace Iyoku.Modules
         public async Task CreateGuildCollection([Remainder]string Name)
         {
             User CurrentUser = await Globals.Db.GetUser(Context.User);
-            if (CurrentUser == null)
-            {
-                await ReplyAsync("Something when wrong, I couldn't find you in the db");
-                return;
+            if (CurrentUser == null) {
+                CurrentUser = await Globals.Db.InitUser(Context.User);
             }
 
             if (CurrentUser.Collections.Any(x => x.Name == Name && x.Type == CollectionType.Server))
@@ -74,10 +72,8 @@ namespace Iyoku.Modules
         public async Task CreatePrivateCollection([Remainder]string Name)
         {
             User CurrentUser = await Globals.Db.GetUser(Context.User);
-            if (CurrentUser == null)
-            {
-                await ReplyAsync("Something when wrong, I couldn't find you in the db");
-                return;
+            if (CurrentUser == null) {
+                CurrentUser = await Globals.Db.InitUser(Context.User);
             }
 
             if (CurrentUser.Collections.Any(x => x.Name == Name && x.Type == CollectionType.Private))
@@ -122,6 +118,27 @@ namespace Iyoku.Modules
             }
 
             await ReplyAsync("", false, CreateCollectionName(BasicUser, Context));
+        }
+
+        [Command("Exist")]
+        public async Task ShowCollectionString(params string[] Args)
+        {
+            string FullLenghtArg = String.Join(' ', Args);
+            List<Collection> MatchingCollections = await GetCollection(Context, FullLenghtArg);
+
+            if (MatchingCollections == null)
+                await ReplyAsync("Non-existant collections");
+            else
+                await ReplyAsync("One or multiple collections found");
+        }
+
+        [Command("Edit")]
+        public async Task EditCollectionAsync(params string[] Args)
+        {
+            string FullLenghtArg = String.Join(' ', Args);
+            List<Collection> MatchingCollections = await GetCollection(Context, FullLenghtArg);
+
+            //TODO: Start edit here
         }
 
         public static Embed CreateCollectionName(User user, ICommandContext Context)
@@ -182,6 +199,25 @@ namespace Iyoku.Modules
             }
 
             return Result;
+        }
+
+        private async static Task<List<Collection>> GetCollection(ICommandContext Context, string Path)
+        {
+            string CollectionName = Path.Split('/')[0];
+            string CollectionPath = Path.Split('/').Length > 1 ? Path.Split('/')[1] : "";
+
+            User CurrentUser = await Globals.Db.GetUser(Context.User);
+            if (CurrentUser != null && CurrentUser.HaveCollection(CollectionName)) {
+                return CurrentUser.GetCollections(Path);
+            }
+            else
+            {
+                User CollectionOwner = await Globals.Db.GetUser(CollectionName);
+                if (CollectionOwner == null)
+                    return null;
+                else
+                    return CollectionOwner.GetCollections(CollectionPath);
+            }
         }
     }
 }

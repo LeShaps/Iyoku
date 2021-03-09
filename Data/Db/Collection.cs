@@ -15,6 +15,7 @@ namespace Iyoku.Db
         public string Name;
         public List<Category> Categories;
         public CollectionType Type;
+        public string Content;
 
         /* Moderation */
         public string OwnerId;
@@ -25,6 +26,10 @@ namespace Iyoku.Db
         public List<string> AllowedUsers;
         public List<string> AllowedGuilds;
         public List<string> AllowedRoles;
+
+        /* Configuration */
+        private ulong _awaitUser;
+        private Action<string> _inWaitAction;
 
         public Collection() { }
 
@@ -95,5 +100,29 @@ namespace Iyoku.Db
             else
                 return false;
         }
+
+        public void ExecutePendingAction(string NewInfos)
+        { 
+            _inWaitAction(NewInfos);
+            Globals.InConfigCollections.Remove(this);
+        }
+
+        public void StartConfigAction(Action<string> Action, ulong User)
+        {
+            _inWaitAction = Action;
+            _awaitUser = User;
+        }
+
+        public void Write(string NewContent)
+            => Content = NewContent;
+
+        public void Append(string NewContent)
+            => Content += NewContent;
+
+        public ulong AwaitUser()
+            => _awaitUser;
+
+        public void SetWaitAction(Action<string> action)
+            => _inWaitAction = action;
     }
 }
