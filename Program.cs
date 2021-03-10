@@ -75,7 +75,7 @@ namespace Iyoku
         private Task CheckNewJailChannel(SocketChannel arg)
         {
             if (!Globals.SiteUploadConfigured)
-                return;
+                return Task.CompletedTask;
             SourceUploaderModule.UpdateSauceUploadInfos();
 
             return Task.CompletedTask;
@@ -90,11 +90,11 @@ namespace Iyoku
 
         private async Task SourceCheck(SocketMessage arg)
         {
-            if (!(arg is SocketUserMessage msg) || !Globals.SiteUploadConfigured)
+            if (!(arg is SocketUserMessage msg) || !Globals.SiteUploadConfigured || arg.IsDm())
                 return;
 
             SocketGuildChannel ChannelForTest = msg.Channel as SocketGuildChannel;
-            if (Globals.JailChannels.Contains(ChannelForTest.Id) || Globals.HellChannels.Contains(ChannelForTest.Id))
+            if (ChannelForTest != null && Globals.JailChannels.Contains(ChannelForTest.Id) || Globals.HellChannels.Contains(ChannelForTest.Id))
             {
                 await SourceUploaderModule.UploadToSauce(msg, Globals.HellChannels.Contains(ChannelForTest.Id));
             }

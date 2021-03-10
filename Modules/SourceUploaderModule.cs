@@ -47,10 +47,11 @@ namespace Iyoku.Modules
 
             var subHTML = html.Split(new[] { "<td class=\"resulttablecontent\">" }, StringSplitOptions.None)[1];
             var compatibility = float.Parse(Regex.Match(subHTML, "<div class=\"resultsimilarityinfo\">([0-9]{2,3}\\.[0-9]{1,2})%<\\/div>").Groups[1].Value, CultureInfo.InvariantCulture);
-            string contentUrl = Regex.Match(html, "</strong><a href=\"(.*?)\" class=\"linkify\"").Groups[1].Value;
+            string PossibleResult = Regex.Match(subHTML, "<a href=\"(.*?)\">").Groups[1].Value;
+            string ConvertedResult = PossibleResult.Split(new[] { "\"" }, StringSplitOptions.None)[0];
 
             if (compatibility > 80)
-                return contentUrl;
+                return ConvertedResult;
             else
                 return "https://pm1.narvii.com/7081/1a5ebacb749c39000e4052a9ceb198dd69735996r1-1152-1584v2_hq.jpg";
         }
