@@ -12,6 +12,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using Iyoku.Extensions;
 using Discord.WebSocket;
+using System.Linq;
 
 namespace Iyoku.Modules
 {
@@ -59,13 +60,29 @@ namespace Iyoku.Modules
         public async static Task UploadToSauce(IMessage message, bool Hell)
         {
             var images = message.Attachments;
+            
             foreach(var img in images)
+            {
+                await MakeUpload(img.Url, message.Channel.Name.Replace("-", " "), Hell);
+            }
+            if (message.Embeds.Count > 0)
+            {
+                foreach (Embed emb in message.Embeds)
+                {
+                    await MakeUpload(emb.Image.Value.Url, message.Channel.Name.Replace("-", " "), Hell);
+                }
+            }
+        }
+
+        private async static Task MakeUpload(string Url, string ChannelName, bool Hell)
+        {
+            try
             {
                 var infos = new SourceInfos
                 {
-                    image = img.Url,
-                    channel = message.Channel.Name.Replace("-", " "),
-                    source = await GetSource(img.Url),
+                    image = Url.Replace(":large", ""),
+                    channel = ChannelName,
+                    source = await GetSource(Url),
                     hell = Hell
                 };
 
@@ -73,7 +90,15 @@ namespace Iyoku.Modules
 
                 var httpContent = new StringContent(payload, Encoding.UTF8, "application/json");
 
-                await Globals.Asker.PostAsync("https://sauce.shaps.work/upload.php", httpContent);
+                var result = await Globals.Asker.PostAsync("https://sauce.shaps.work/upload.php", httpContent);
+            }
+            catch (HttpRequestException e)
+            {
+                if (e.Message.Contains("429"))
+                {
+                    await Task.Delay(500);
+                    await MakeUpload(Url, ChannelName, Hell);
+                }
             }
         }
 
@@ -91,6 +116,16 @@ namespace Iyoku.Modules
 
             Server.CustomChannels
                 .ForEach(custom => CheckCustomChannel(custom));
+
+            Server.ExcludedChannels
+                .Where(ignore => Globals.JailChannels.Contains(ignore))
+                .ToList()
+                .ForEach(ignore => Globals.JailChannels.Remove(ignore));
+
+            Server.ExcludedChannels
+                .Where(ignore => Globals.HellChannels.Contains(ignore))
+                .ToList()
+                .ForEach(ignore => Globals.HellChannels.Remove(ignore));
         }
 
         private static void CheckCustomChannel(CustomChannel chan)

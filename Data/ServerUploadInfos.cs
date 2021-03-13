@@ -10,6 +10,7 @@ namespace Iyoku.Data
         public List<string> JailCategories;
         public List<string> HellCategories;
         public List<CustomChannel> CustomChannels;
+        public List<ulong> ExcludedChannels;
     }
 
     public class CustomChannel

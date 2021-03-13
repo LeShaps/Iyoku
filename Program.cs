@@ -59,7 +59,6 @@ namespace Iyoku
 
             Globals.Client.MessageReceived += SourceCheck;
             Globals.Client.MessageReceived += HandleMessageAsync;
-            Globals.Client.MessageReceived += CollectionModifierCheck;
             Globals.Client.Ready += InitJailChannels;
 
             Globals.Client.ChannelCreated += CheckNewJailChannel;
@@ -98,16 +97,6 @@ namespace Iyoku
             {
                 await SourceUploaderModule.UploadToSauce(msg, Globals.HellChannels.Contains(ChannelForTest.Id));
             }
-        }
-
-        private Task CollectionModifierCheck(SocketMessage arg)
-        {
-            if (Globals.InConfigCollections.Any(x => x.AwaitUser() == arg.Author.Id)) {
-                Collection Config = Globals.InConfigCollections.Where(x => x.AwaitUser() == arg.Author.Id).FirstOrDefault();
-                
-            }
-            // To finish
-            throw new NotImplementedException();
         }
 
         private async Task HandleMessageAsync(SocketMessage arg)
