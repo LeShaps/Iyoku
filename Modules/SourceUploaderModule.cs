@@ -13,6 +13,8 @@ using Newtonsoft.Json.Linq;
 using Iyoku.Extensions;
 using Discord.WebSocket;
 using System.Linq;
+using Iyoku.Utilities;
+using System.Collections.Generic;
 
 namespace Iyoku.Modules
 {
@@ -22,6 +24,14 @@ namespace Iyoku.Modules
         public async Task GetSauceFrom([Remainder]string Url)
         {
             await ReplyAsync(await GetSource(Url));
+        }
+
+        [Command("Reload channels"), RequireOwner]
+        public static void ReloadJson()
+        {
+            Globals.HellChannels.Clear();
+            Globals.JailChannels.Clear();
+            UpdateSauceUploadInfos();
         }
 
         public static void UpdateSauceUploadInfos()
@@ -61,6 +71,12 @@ namespace Iyoku.Modules
         {
             var images = message.Attachments;
             
+            if (images.Count > 0)
+            {
+                IUserMessage mess = message as IUserMessage;
+                await mess.AddReactionsAsync(Utilities.Utilities.MakeEmojiArray("❤️", "⭐"));
+            }
+
             foreach(var img in images)
             {
                 await MakeUpload(img.Url, message.Channel.Name.Replace("-", " "), Hell);
@@ -71,6 +87,9 @@ namespace Iyoku.Modules
                 {
                     await MakeUpload(emb.Image.Value.Url, message.Channel.Name.Replace("-", " "), Hell);
                 }
+
+                IUserMessage mess = message as IUserMessage;
+                await mess.AddReactionsAsync(Utilities.Utilities.MakeEmojiArray("❤️", "⭐"));
             }
         }
 
@@ -98,6 +117,44 @@ namespace Iyoku.Modules
                 {
                     await Task.Delay(500);
                     await MakeUpload(Url, ChannelName, Hell);
+                }
+            }
+        }
+
+        public async static Task CheckAndUploadStats(IUserMessage Message, SocketReaction Reaction, string ChannelName)
+        {
+            string FormatedChannelName = ChannelName.Replace("-", " ");
+            string ImageUrl = Message.Attachments.First().Url;
+
+            await UploadToStats(Reaction.Emote.ToString() == "⭐", ImageUrl, FormatedChannelName);
+
+        }
+
+        private static async Task UploadToStats(bool Favorite, string ImageUrl, string ChannelName)
+        {
+            try
+            {
+                var infos = new ReactionStats
+                {
+                    image = ImageUrl,
+                    fav = Favorite,
+                    like = !Favorite,
+                    channel = ChannelName,
+                    addmode = true
+                };
+
+                var payload = JsonConvert.SerializeObject(infos);
+
+                var httpContent = new StringContent(payload, Encoding.UTF8, "application/json");
+
+                var result = await Globals.Asker.PostAsync("https://sauce.shaps.work/statsupdate.php", httpContent);
+            }
+            catch(HttpRequestException e)
+            {
+                if (e.Message.Contains("429"))
+                {
+                    await Task.Delay(500);
+                    await UploadToStats(Favorite, ImageUrl, ChannelName);
                 }
             }
         }

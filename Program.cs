@@ -60,6 +60,7 @@ namespace Iyoku
             Globals.Client.MessageReceived += SourceCheck;
             Globals.Client.MessageReceived += HandleMessageAsync;
             Globals.Client.Ready += InitJailChannels;
+            Globals.Client.ReactionAdded += CheckLikeReactions;
 
             Globals.Client.ChannelCreated += CheckNewJailChannel;
 
@@ -69,6 +70,16 @@ namespace Iyoku
             await Globals.Client.StartAsync();
 
             await Task.Delay(-1).ConfigureAwait(false);
+        }
+
+        private async Task CheckLikeReactions(Cacheable<IUserMessage, ulong> Message, ISocketMessageChannel Channel, SocketReaction Reaction)
+        {
+            if ((Globals.JailChannels.Contains(Channel.Id) || Globals.HellChannels.Contains(Channel.Id)) && !Reaction.User.Value.IsBot) {
+                if (Reaction.Emote.ToString().Is("❤️", "⭐")) {
+                    var Mess = await Message.GetOrDownloadAsync();
+                    await SourceUploaderModule.CheckAndUploadStats(Mess, Reaction, Channel.Name);
+                }
+            }
         }
 
         private Task CheckNewJailChannel(SocketChannel arg)
